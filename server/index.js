@@ -10,7 +10,8 @@ const userRoutes = require('./routes/users');
 
 const app = express();
 
-app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:3000'], credentials: true }));
+// Allow requests from any origin (including Vercel deployed previews)
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
 // Routes
