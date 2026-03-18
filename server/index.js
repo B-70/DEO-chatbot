@@ -19,6 +19,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/users', userRoutes);
 
+app.get('/', (req, res) => res.send('Welcome to the DEO Chatbot API! The server is running successfully. 🚀'));
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }));
 
 async function startServer() {
