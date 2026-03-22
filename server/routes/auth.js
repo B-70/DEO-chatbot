@@ -33,11 +33,9 @@ router.post('/signup', async (req, res) => {
         await user.save();
         
         console.log(`[AUTH] Signup OTP for ${user.username} (${user.email}): ${otp}`);
-        try {
-          await sendOTPEmail(user.email, user.name, otp);
-        } catch (mailErr) {
+        sendOTPEmail(user.email, user.name, otp).catch(mailErr => {
           console.error('Failed to send OTP email:', mailErr);
-        }
+        });
         return res.json({ message: 'OTP sent to your email.', requireOtp: true, email: user.email });
       }
       return res.status(400).json({ message: 'User already exists and is verified.' });
@@ -59,13 +57,11 @@ router.post('/signup', async (req, res) => {
 
     await user.save();
     
-    // Send OTP email
+    // Send OTP email asynchronously
     console.log(`[AUTH] Signup OTP for ${user.username} (${user.email}): ${otp}`);
-    try {
-      await sendOTPEmail(user.email, user.name, otp);
-    } catch (mailErr) {
+    sendOTPEmail(user.email, user.name, otp).catch(mailErr => {
       console.error('Failed to send OTP email:', mailErr);
-    }
+    });
     res.json({ message: 'OTP sent to your email.', requireOtp: true, email: user.email });
   } catch (err) {
     console.error('Signup error:', err);
@@ -133,7 +129,27 @@ router.post('/login', async (req, res) => {
     const isMatch = await user.comparePassword(password);
     if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
-    // Enforce OTP for every login step
+    // --- DEMO BYPASS ---
+    // If it's a known demo account, skip the OTP completely for instant access
+    const demoAccounts = ['admin', 'deo_cse', 'deo_ece', 'hod_cse', 'faculty_cse'];
+    if (demoAccounts.includes(user.username)) {
+      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
+      return res.json({
+        message: 'Demo login successful! 🎉',
+        token,
+        user: {
+          id: user._id,
+          username: user.username,
+          name: user.name,
+          role: user.role,
+          department: user.department,
+          email: user.email
+        }
+      });
+    }
+    // --- END DEMO BYPASS ---
+
+    // Enforce OTP for every normal login step
     const otp = generateOTP();
     user.otp = otp;
     user.otpExpires = Date.now() + 10 * 60 * 1000;
@@ -142,12 +158,10 @@ router.post('/login', async (req, res) => {
     // Log OTP to console to help with demo accounts testing
     console.log(`[AUTH] Login OTP for ${user.username} (${user.email}): ${otp}`);
     
-    try {
-      await sendOTPEmail(user.email, user.name, otp);
-    } catch (mailErr) {
+    sendOTPEmail(user.email, user.name, otp).catch(mailErr => {
       console.error('Failed to send OTP email:', mailErr);
-      // We still return requireOtp so the UI progresses, even if email failed (useful for debug demo accounts)
-    }
+      // We still return requireOtp so the UI progresses, even if email failed
+    });
 
     return res.json({ 
       message: user.isVerified ? 'OTP sent to your email to complete sign in.' : 'Email not verified. A new OTP has been sent.', 

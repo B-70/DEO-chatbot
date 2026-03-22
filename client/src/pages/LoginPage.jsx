@@ -16,9 +16,19 @@ export default function LoginPage() {
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
+    await performLogin(form.username, form.password);
+  };
+
+  const handleDemoLogin = async (demoUser, demoPass) => {
+    setForm(f => ({ ...f, username: demoUser, password: demoPass }));
+    await performLogin(demoUser, demoPass);
+  };
+
+  const performLogin = async (username, password) => {
     setError(''); setLoading(true);
     try {
-      const res = await login(form.username, form.password);
+      const res = await login(username, password);
+      // Backend should skip OTP for demo accounts, but we'll still handle it gracefully
       if (res?.requireOtp) {
         setForm(f => ({ ...f, email: res.email }));
         toast.success(res.message || 'OTP sent to your email.');
@@ -141,6 +151,17 @@ export default function LoginPage() {
                 <button onClick={() => setView('signup')} style={{ flex: 1, padding: '8px', borderRadius: '8px', background: 'transparent', color: 'var(--text-secondary)', border: 'none', fontWeight: '500', cursor: 'pointer', transition: 'color 0.2s' }} onMouseEnter={e => e.target.style.color = 'var(--text-primary)'} onMouseLeave={e => e.target.style.color = 'var(--text-secondary)'}>
                   Sign Up
                 </button>
+              </div>
+
+              {/* DEMO ACCOUNTS */}
+              <div style={{ marginBottom: '20px', padding: '12px', background: 'rgba(59, 130, 246, 0.05)', borderRadius: '8px', border: '1px solid rgba(59, 130, 246, 0.15)' }}>
+                <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '8px', textAlign: 'center', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Instant Demo Access</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
+                  <button type="button" onClick={() => handleDemoLogin('admin', 'admin123')} style={{ fontSize: '12px', padding: '6px 10px', borderRadius: '6px', background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-primary)', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={e => {e.target.style.borderColor = 'var(--brand-primary)'; e.target.style.color = 'var(--brand-primary)'}} onMouseLeave={e => {e.target.style.borderColor = 'var(--border)'; e.target.style.color = 'var(--text-primary)'}}>Admin</button>
+                  <button type="button" onClick={() => handleDemoLogin('hod_cse', 'hod123')} style={{ fontSize: '12px', padding: '6px 10px', borderRadius: '6px', background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-primary)', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={e => {e.target.style.borderColor = 'var(--brand-primary)'; e.target.style.color = 'var(--brand-primary)'}} onMouseLeave={e => {e.target.style.borderColor = 'var(--border)'; e.target.style.color = 'var(--text-primary)'}}>HOD (CSE)</button>
+                  <button type="button" onClick={() => handleDemoLogin('deo_cse', 'deo123')} style={{ fontSize: '12px', padding: '6px 10px', borderRadius: '6px', background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-primary)', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={e => {e.target.style.borderColor = 'var(--brand-primary)'; e.target.style.color = 'var(--brand-primary)'}} onMouseLeave={e => {e.target.style.borderColor = 'var(--border)'; e.target.style.color = 'var(--text-primary)'}}>DEO (CSE)</button>
+                  <button type="button" onClick={() => handleDemoLogin('faculty_cse', 'faculty123')} style={{ fontSize: '12px', padding: '6px 10px', borderRadius: '6px', background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-primary)', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={e => {e.target.style.borderColor = 'var(--brand-primary)'; e.target.style.color = 'var(--brand-primary)'}} onMouseLeave={e => {e.target.style.borderColor = 'var(--border)'; e.target.style.color = 'var(--text-primary)'}}>Faculty</button>
+                </div>
               </div>
 
               <form onSubmit={handleLoginSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
